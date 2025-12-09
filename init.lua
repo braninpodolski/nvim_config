@@ -65,6 +65,8 @@ require("lazy").setup({
     },
     config = function()
       local cmp = require("cmp")
+      local cmp_autopairs = require("nvim-autopairs.completion.cmp")
+
       cmp.setup({
         snippet = {
           expand = function(args)
@@ -85,6 +87,34 @@ require("lazy").setup({
           { name = "buffer" },
           { name = "path" },
         }),
+      })
+
+      -- Integrate autopairs with cmp
+      cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
+    end,
+  },
+
+  -- Auto-pairs for brackets and parentheses
+  {
+    "windwp/nvim-autopairs",
+    event = "InsertEnter",
+    config = function()
+      require("nvim-autopairs").setup({
+        check_ts = true, -- Enable treesitter
+        ts_config = {
+          lua = { "string" }, -- Don't add pairs in lua string treesitter nodes
+          javascript = { "template_string" },
+        },
+        fast_wrap = {
+          map = "<M-e>", -- Alt+e to fast wrap
+          chars = { "{", "[", "(", '"', "'" },
+          pattern = [=[[%'%"%>%]%)%}%,]]=],
+          end_key = "$",
+          keys = "qwertyuiopzxcvbnmasdfghjkl",
+          check_comma = true,
+          highlight = "Search",
+          highlight_grey = "Comment",
+        },
       })
     end,
   },
@@ -145,6 +175,49 @@ require("lazy").setup({
     },
     config = function()
       vim.keymap.set("n", "<leader>gg", "<cmd>LazyGit<cr>", { desc = "Open LazyGit" })
+    end,
+  },
+
+  -- Minimal aesthetic status bar
+  {
+    "nvim-lualine/lualine.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      local custom_theme = require("lualine.themes.auto")
+      custom_theme.normal.c.bg = "#3b4252"
+      custom_theme.insert.c.bg = "#3b4252"
+      custom_theme.visual.c.bg = "#3b4252"
+      custom_theme.replace.c.bg = "#3b4252"
+      custom_theme.command.c.bg = "#3b4252"
+      custom_theme.inactive.c.bg = "#3b4252"
+
+      require("lualine").setup({
+        options = {
+          theme = custom_theme,
+          component_separators = { left = "", right = "" },
+          section_separators = { left = "", right = "" },
+        },
+        sections = {
+          lualine_a = { "mode" },
+          lualine_b = { "branch", "diff" },
+          lualine_c = {
+            {
+              "filename",
+              path = 1,
+              color = { fg = "#ffffff", bg = "#3b4252", gui = "bold" }
+            }
+          },
+          lualine_x = {
+            "diagnostics",
+            {
+              "filetype",
+              color = { fg = "#88c0d0", gui = "bold" }
+            }
+          },
+          lualine_y = { "progress" },
+          lualine_z = { "location" },
+        },
+      })
     end,
   },
 })
